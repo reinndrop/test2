@@ -12,6 +12,7 @@
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:#0b1220;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial}
 
+  /* Panggung 1080:1920 */
   .stage{
     position:relative; width:min(100vw, 600px); aspect-ratio:1080/1920; margin:0 auto;
     background: radial-gradient(1200px 900px at 50% 20%, rgba(0,0,0,.12), rgba(0,0,0,.35)), #0b1220 center/cover no-repeat;
@@ -24,10 +25,10 @@
     background-size:cover; background-position:center;
   }
 
-  /* Panel: dinaikkan (gap atas diperkecil), aman dari dekor bawah */
+  /* Panel: dinaikkan lagi (gap atas kecil), tetap aman dari dekor bawah */
   .panel{
     position:absolute; left:6%; right:6%;
-    top:26%;          /* <— dari 29% jadi 26% (naik) */
+    top:24%;          /* <— dinaikkan dari 26% */
     bottom:12%;
     display:flex; flex-direction:column; gap:14px;
     background:linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08));
@@ -46,12 +47,13 @@
   }
   .score{
     background:rgba(0,209,255,.25);border:1px solid rgba(0,209,255,.55);
-    font-size:18px;                 /* <— dibesarkan */
-    padding:10px 14px;              /* <— dibesarkan */
+    font-size:20px;                 /* skor lebih besar */
+    padding:10px 16px;
   }
 
   .question{margin-top:4px;font-weight:800;line-height:1.25;font-size:clamp(16px,2.4vw,26px);text-shadow:0 2px 6px rgba(0,0,0,.45)}
 
+  /* Jawaban: selalu SATU BARIS */
   .answer{display:flex;justify-content:center;gap:var(--gap);padding:8px 0 4px;flex-wrap:nowrap;overflow:hidden}
   .slot{
     width:var(--slot); height:var(--slot); display:grid; place-items:center;
@@ -157,9 +159,9 @@ const btnReplay = document.getElementById('btnReplay');
 })();
 
 /* ========= STATE ========= */
-let idx = 0;                 // index pertanyaan
-let score = 0;               // total poin
-let slots = [];              // DOM slot jawaban
+let idx = 0;          // index pertanyaan
+let score = 0;        // total poin (20/40/60/80/100)
+let slots = [];       // DOM slot jawaban
 
 /* ========= UTIL ========= */
 const rand = (min, max) => Math.floor(Math.random()*(max-min+1))+min;
@@ -234,11 +236,13 @@ btnSubmit.onclick = ()=>{
   const L = levels[idx];
   const formed = slots.map(s => s.textContent).join('');
   const answer = L.a.toUpperCase().replace(/\s+/g,'');
-  // kalau belum penuh → anggap salah juga
-  if(formed.length < answer.length){
-    showCorrectThenNext(answer);
-    return;
+
+  // Cek incomplete secara eksplisit
+  const incomplete = slots.some(s => !s.textContent);
+  if(incomplete){
+    return showCorrectThenNext(answer);
   }
+
   if(formed === answer){
     // poin 20/40/60/80/100 sesuai nomor pertanyaan (1..5)
     score += (idx+1) * 20;
