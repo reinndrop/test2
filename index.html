@@ -21,7 +21,7 @@
     background-size:cover; background-position:center;
   }
 
-  /* Panel: top 31%, bottom 4% */
+  /* Panel */
   .panel{
     position:absolute; left:6%; right:6%;
     top:31%; bottom:4%;
@@ -35,7 +35,15 @@
   .badge{background:rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.22);font-size:14px}
   .score{background:rgba(0,209,255,.25);border:1px solid rgba(0,209,255,.55);font-size:18px;padding:10px 14px}
 
-  .question{margin-top:4px;font-weight:800;line-height:1.25;font-size:clamp(16px,2.4vw,26px);text-shadow:0 2px 6px rgba(0,0,0,.45)}
+  /* Pertanyaan: diperkecil dikit */
+  .question{
+    margin-top:2px;
+    font-weight:800;
+    line-height:1.25;
+    font-size:clamp(15px, 2.1vw, 21px);
+    text-shadow:0 2px 6px rgba(0,0,0,.45);
+    text-align:center;
+  }
 
   .answer{display:flex;justify-content:center;gap:var(--gap);padding:8px 0 4px;flex-wrap:nowrap;overflow:hidden}
   .slot{
@@ -66,6 +74,9 @@
   }
   .btn.danger{background:linear-gradient(180deg, #f04438, #c81e14)}
   .btn.primary{background:linear-gradient(180deg, #00d1ff, #0098ff);border-color:rgba(255,255,255,.35)}
+  .btn.neutral{background:linear-gradient(180deg, #6b7280, #4b5563)} /* Skip */
+
+  .btn:disabled{opacity:.45; cursor:not-allowed; filter:grayscale(.3)}
 
   .endscreen{position:absolute;inset:0;display:none;place-items:center;text-align:center;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);padding:24px}
   .card{
@@ -96,7 +107,8 @@
 
       <div class="actions">
         <button class="btn danger" id="btnUndo">Hapus</button>
-        <button class="btn primary" id="btnSubmit">Submit</button>
+        <button class="btn neutral" id="btnSkip">Skip</button>
+        <button class="btn primary" id="btnSubmit" disabled>Submit</button>
       </div>
     </div>
 
@@ -111,7 +123,7 @@
   </div>
 
 <script>
-/* ====== 20 Soal dari kamu ====== */
+/* ====== 20 Soal ====== */
 const QUESTION_POOL = [
   { q: "Siapa pemain yang dijuluki “El Loco”?", a: "GONZALES" },
   { q: "Sebutkan tahun debut Indonesia di Piala Asia?", a: "1996" },
@@ -122,7 +134,7 @@ const QUESTION_POOL = [
   { q: "PSSI didirikan pada tahun?", a: "1930" },
   { q: "Timnas Indonesia dijuluki ___ Muda", a: "GARUDA" },
   { q: "Timnas Indonesia U-23 dilatih oleh ___ Vanenburg", a: "GERALD" },
-  { q: "Tendangan langsung ke gawang dari kick-off sah atau tidak?", a: "SAH" },
+  { q: "Tendangan langsung ke gawang dari kick-off sah atau tidak?", a: "SAH" }, // update permintaanmu
   { q: "Ketua PSSI era 2015 adalah La ___ Mattalitti", a: "NYALLA" },
   { q: "Berapa jumlah gol Indonesia di fase grup Piala Asia 2023?", a: "TIGA" },
   { q: "Berapa jumlah gol Indonesia di final SEA Games 2023?", a: "DUA" },
@@ -135,11 +147,11 @@ const QUESTION_POOL = [
   { q: "Maksimal panjang lapangan internasional (meter)?", a: "105" }
 ];
 
-/* Ambil 5 random unik */
+/* ====== Ambil 5 random unik ====== */
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
 const levels = shuffle([...QUESTION_POOL]).slice(0,5);
 
-/* Elemen */
+/* ====== Elemen ====== */
 const elStage = document.getElementById('stage');
 const elPanel = document.getElementById('panel');
 const elQuestion= document.getElementById('question');
@@ -150,6 +162,7 @@ const elProgress= document.getElementById('progress');
 const elEnd     = document.getElementById('end');
 const elFinal   = document.getElementById('finalScore');
 const btnUndo   = document.getElementById('btnUndo');
+const btnSkip   = document.getElementById('btnSkip');
 const btnSubmit = document.getElementById('btnSubmit');
 const btnReplay = document.getElementById('btnReplay');
 
@@ -160,30 +173,23 @@ const btnReplay = document.getElementById('btnReplay');
   img.src = "assets/bg.png";
 })();
 
-/* State */
-let idx = 0;
-let score = 0;
+/* ====== State ====== */
+let idx = 0;      // 0..4
+let score = 0;    // 0..100
 let slots = [];
 
-/* Utils */
+/* ====== Utils ====== */
 const rand = (min, max) => Math.floor(Math.random()*(max-min+1))+min;
 
-/* FIX: target dihitung sekali, bukan ikut berubah dengan length! */
 function makePool(answer){
   const core = answer.replace(/\s+/g,'').toUpperCase();
   const base = core.split('');
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
   const numbers = "0123456789".split('');
 
-  // DETEKSI kalau jawabannya murni angka
-  const isNumericOnly = /^[0-9]+$/.test(core);
-  let source;
-  if(isNumericOnly){
-    source = numbers;
-  }else{
-    const useNumbers = /\d/.test(core);
-    source = useNumbers ? alphabet.concat(numbers) : alphabet;
-  }
+  const isNumericOnly = /^[0-9]+$/.test(core);   // angka murni → hanya angka
+  const useNumbers = /\d/.test(core);            // campuran huruf+angka
+  let source = isNumericOnly ? numbers : (useNumbers ? alphabet.concat(numbers) : alphabet);
 
   const desired = Math.max(12, core.length + 4);
   const pool = base.slice();
@@ -206,7 +212,14 @@ function setSlotSizeForOneRow(n){
   document.documentElement.style.setProperty('--slot', size + 'px');
 }
 
-/* Render */
+function slotsFilled(){
+  return slots.every(s => s.textContent && s.textContent.length === 1);
+}
+function updateSubmitState(){
+  btnSubmit.disabled = !slotsFilled();
+}
+
+/* ====== Render Soal ====== */
 function renderLevel(){
   const L = levels[idx];
   elProgress.textContent = `Pertanyaan ${idx+1}/${levels.length}`;
@@ -217,7 +230,7 @@ function renderLevel(){
   slots = [];
   const answerClean = L.a.toUpperCase().replace(/\s+/g,'');
   setSlotSizeForOneRow(answerClean.length);
-  for (let i=0;i<answerClean.length;i++){
+  for(let i=0;i<answerClean.length;i++){
     const slot = document.createElement('div');
     slot.className = 'slot';
     slot.textContent = '';
@@ -231,17 +244,20 @@ function renderLevel(){
     const b = document.createElement('div');
     b.className = 'btn-letter';
     b.textContent = ch;
-    b.addEventListener('click', ()=> placeLetter(b, ch));
+    b.addEventListener('click', ()=> { placeLetter(b, ch); });
     elLetters.appendChild(b);
   });
+
+  updateSubmitState(); // pastikan submit diawal disabled
 }
 
-/* Interaksi */
+/* ====== Interaksi ====== */
 function placeLetter(btn, ch){
   const target = slots.find(s => s.textContent==='');
   if(!target) return;
   target.textContent = ch;
   btn.classList.add('disabled'); btn.dataset.used = "1";
+  updateSubmitState();
 }
 
 btnUndo.onclick = ()=>{
@@ -250,27 +266,34 @@ btnUndo.onclick = ()=>{
     if(s.textContent!==''){
       const ch = s.textContent; s.textContent = '';
       const btn = [...elLetters.children].find(b => b.textContent===ch && b.dataset.used==="1");
-      if(btn){ btn.classList.remove('disabled'); btn.dataset.used=""; break; }
+      if(btn){ btn.classList.remove('disabled'); btn.dataset.used=""; }
+      break;
     }
   }
+  updateSubmitState();
+};
+
+btnSkip.onclick = ()=>{
+  // tampilkan jawaban benar, lanjut (tanpa poin)
+  const answer = levels[idx].a.toUpperCase().replace(/\s+/g,'');
+  showCorrectThenNext(answer);
 };
 
 btnSubmit.onclick = ()=>{
+  if(btnSubmit.disabled) return; // safety
   const L = levels[idx];
   const formed = slots.map(s => s.textContent).join('');
   const answer = L.a.toUpperCase().replace(/\s+/g,'');
 
-  // Belum penuh / salah → salah, tampilkan jawaban & lanjut
-  if(formed.length < answer.length || formed !== answer){
+  if(formed === answer){
+    score += 20;
+    elScore.textContent = `Skor: ${score}`;
+    flash(elAnswer,'rgba(54,211,153,.35)');
+    setTimeout(nextLevel, 450);
+  }else{
+    // salah → tidak dapat poin, tampilkan jawaban, lanjut
     showCorrectThenNext(answer);
-    return;
   }
-
-  // Benar → +20 poin
-  score += 20;
-  elScore.textContent = `Skor: ${score}`;
-  flash(elAnswer,'rgba(54,211,153,.35)');
-  setTimeout(nextLevel, 450);
 };
 
 function showCorrectThenNext(answer){
@@ -279,7 +302,7 @@ function showCorrectThenNext(answer){
   setTimeout(nextLevel, 900);
 }
 
-/* Helpers */
+/* ====== Helpers ====== */
 function flash(el, color){
   el.style.boxShadow = `0 0 0 9999px ${color} inset`;
   setTimeout(()=> el.style.boxShadow = '', 220);
