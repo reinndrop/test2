@@ -17,20 +17,19 @@
   .stage.has-bg{
     background-image:
       radial-gradient(1200px 900px at 50% 20%, rgba(0,0,0,.12), rgba(0,0,0,.35)),
-      url("assets/bg.png");
+      url("assets/bg.png"); /* pastikan ada assets/bg.png */
     background-size:cover; background-position:center;
   }
 
-  /* POSISI PANEL: balik ke 32% seperti yang kamu minta */
-.panel{
-  position:absolute; left:6%; right:6%;
-  top:25%;  /* naikin dikit dari 32% */
-  bottom:12%;
-  display:flex; flex-direction:column; gap:14px;
-  background:linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08));
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:20px; backdrop-filter: blur(6px); padding:16px;
-}
+  /* Panel: dinaikkan sedikit */
+  .panel{
+    position:absolute; left:6%; right:6%;
+    top:30%; bottom:12%;
+    display:flex; flex-direction:column; gap:14px;
+    background:linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08));
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:20px; backdrop-filter: blur(6px); padding:16px;
+  }
 
   .topbar{display:flex;justify-content:space-between;align-items:center;font-weight:800;letter-spacing:.3px;margin-top:6px}
   .badge{background:rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.22);font-size:14px}
@@ -47,19 +46,19 @@
   }
 
   .letters{margin-top:8px; display:grid; grid-template-columns:repeat(6,1fr); gap:10px}
-.btn-letter{
-  height:65px; /* sebelumnya 56px */
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.2);
-  background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
-  box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
-  font-weight:900;
-  font-size:18px; /* sebelumnya 22px */
-  color:#fff;
-  display:grid;place-items:center;
-  user-select:none;cursor:pointer;
-  transition:transform .05s ease;
-}
+  /* tombol huruf DIPERKECIL */
+  .btn-letter{
+    height:48px;                 /* dari 56px → 48px */
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.2);
+    background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+    box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+    font-weight:900;
+    font-size:20px;              /* dari 22px → 20px */
+    color:#fff;
+    display:grid; place-items:center; user-select:none; cursor:pointer;
+    transition:transform .05s ease;
+  }
   .btn-letter:active{transform:translateY(1px) scale(.99)}
   .btn-letter.disabled{opacity:.35;pointer-events:none}
 
@@ -80,6 +79,12 @@
   .card h2{margin:0 0 10px;font-size:28px}
   .card p{margin:8px 0;opacity:.95}
   .cta{margin-top:14px;font-weight:800;background:linear-gradient(180deg,#22c55e,#16a34a);border:1px solid rgba(255,255,255,.3);color:#fff;padding:12px 16px;border-radius:14px;display:inline-block}
+
+  /* ekstra kecil di layar sangat sempit */
+  @media (max-width:400px){
+    .btn-letter{height:44px;font-size:18px}
+    :root{ --gap: 8px }
+  }
 </style>
 </head>
 <body>
@@ -134,7 +139,7 @@ const btnUndo   = document.getElementById('btnUndo');
 const btnSubmit = document.getElementById('btnSubmit');
 const btnReplay = document.getElementById('btnReplay');
 
-/* Aktifkan background jika assets/bg.png tersedia */
+/* aktifkan background bila tersedia */
 (function(){
   const img = new Image();
   img.onload = () => elStage.classList.add('has-bg');
