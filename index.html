@@ -22,14 +22,15 @@
   }
 
   /* POSISI PANEL: balik ke 32% seperti yang kamu minta */
-  .panel{
-    position:absolute; left:6%; right:6%;
-    top:32%; bottom:12%;
-    display:flex; flex-direction:column; gap:14px;
-    background:linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08));
-    border:1px solid rgba(255,255,255,.16);
-    border-radius:20px; backdrop-filter: blur(6px); padding:16px;
-  }
+.panel{
+  position:absolute; left:6%; right:6%;
+  top:30%;  /* dari 32% → jadi 30% */
+  bottom:12%;
+  display:flex; flex-direction:column; gap:14px;
+  background:linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08));
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:20px; backdrop-filter: blur(6px); padding:16px;
+}
 
   .topbar{display:flex;justify-content:space-between;align-items:center;font-weight:800;letter-spacing:.3px;margin-top:6px}
   .badge{background:rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.22);font-size:14px}
