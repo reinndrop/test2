@@ -171,17 +171,31 @@ const rand = (min, max) => Math.floor(Math.random()*(max-min+1))+min;
 /* FIX: target dihitung sekali, bukan ikut berubah dengan length! */
 function makePool(answer){
   const core = answer.replace(/\s+/g,'').toUpperCase();
-  const letters = core.split('');
+  const base = core.split('');
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
   const numbers = "0123456789".split('');
-  const containsNumber = /\d/.test(core);
-  const sourceChars = containsNumber ? alphabet.concat(numbers) : alphabet;
 
-  const desired = Math.max(12, core.length + 4);  // ← target tetap
-  while (letters.length < desired){
-    letters.push(sourceChars[rand(0, sourceChars.length - 1)]);
+  // DETEKSI kalau jawabannya murni angka
+  const isNumericOnly = /^[0-9]+$/.test(core);
+  let source;
+  if(isNumericOnly){
+    source = numbers;
+  }else{
+    const useNumbers = /\d/.test(core);
+    source = useNumbers ? alphabet.concat(numbers) : alphabet;
   }
-  return shuffle(letters).slice(0, desired);
+
+  const desired = Math.max(12, core.length + 4);
+  const pool = base.slice();
+  while (pool.length < desired){
+    pool.push(source[Math.floor(Math.random()*source.length)]);
+  }
+  // acak
+  for (let i=pool.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool;
 }
 
 function setSlotSizeForOneRow(n){
