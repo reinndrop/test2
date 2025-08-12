@@ -5,10 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <title>VG Art — Tebak Kata</title>
 <style>
-  :root{
-    --slot: 64px;
-    --gap: 10px;
-  }
+  :root{ --slot:64px; --gap:10px; }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:#0b1220;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial}
 
@@ -24,30 +21,19 @@
     background-size:cover; background-position:center;
   }
 
+  /* POSISI PANEL: biarin seperti yang sudah pas di kamu (tidak diubah) */
   .panel{
     position:absolute; left:6%; right:6%;
-    top:32%; 
-    bottom:12%;
+    top:29%; bottom:12%;
     display:flex; flex-direction:column; gap:14px;
     background:linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08));
     border:1px solid rgba(255,255,255,.16);
     border-radius:20px; backdrop-filter: blur(6px); padding:16px;
   }
 
-  .topbar{
-    display:flex;justify-content:space-between;align-items:center;
-    font-weight:800;letter-spacing:.3px;margin-top:6px
-  }
-  .badge{
-    background:rgba(255,255,255,.12);
-    padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.22);
-    font-size:14px;
-  }
-  .score{
-    background:rgba(0,209,255,.25);border:1px solid rgba(0,209,255,.55);
-    font-size:18px;
-    padding:10px 14px;
-  }
+  .topbar{display:flex;justify-content:space-between;align-items:center;font-weight:800;letter-spacing:.3px;margin-top:6px}
+  .badge{background:rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.22);font-size:14px}
+  .score{background:rgba(0,209,255,.25);border:1px solid rgba(0,209,255,.55);font-size:18px;padding:10px 14px}
 
   .question{margin-top:4px;font-weight:800;line-height:1.25;font-size:clamp(16px,2.4vw,26px);text-shadow:0 2px 6px rgba(0,0,0,.45)}
 
@@ -97,9 +83,7 @@
       </div>
 
       <div class="question" id="question"></div>
-
       <div class="answer" id="answer"></div>
-
       <div class="letters" id="letters"></div>
 
       <div class="actions">
@@ -119,6 +103,7 @@
   </div>
 
 <script>
+/* ====== Soal ====== */
 const levels = [
   { q: "Ibukota negara Jepang", a: "TOKYO" },
   { q: "Julukan olahraga: si kulit ____", a: "BUNDAR" },
@@ -127,6 +112,7 @@ const levels = [
   { q: "Tendangan penalti dalam bahasa Inggris", a: "PENALTY" }
 ];
 
+/* ====== Elemen ====== */
 const elStage = document.getElementById('stage');
 const elPanel = document.getElementById('panel');
 const elQuestion= document.getElementById('question');
@@ -140,14 +126,17 @@ const btnUndo   = document.getElementById('btnUndo');
 const btnSubmit = document.getElementById('btnSubmit');
 const btnReplay = document.getElementById('btnReplay');
 
-(function testBG(){
+/* Background aktif kalau ada assets/bg.png */
+(function(){
   const img = new Image();
   img.onload = () => elStage.classList.add('has-bg');
   img.src = "assets/bg.png";
 })();
 
-let idx = 0;
-let score = 0;
+/* ====== State & Utils ====== */
+let idx = 0;           // index soal
+let correct = 0;       // jumlah benar (0..5)
+let score = 0;         // skor (0,20,40,60,80,100)
 let slots = [];
 
 const rand = (min, max) => Math.floor(Math.random()*(max-min+1))+min;
@@ -168,6 +157,7 @@ function setSlotSizeForOneRow(n){
   document.documentElement.style.setProperty('--slot', size + 'px');
 }
 
+/* ====== Render Soal ====== */
 function renderLevel(){
   const L = levels[idx];
   elProgress.textContent = `Pertanyaan ${idx+1}/${levels.length}`;
@@ -197,6 +187,7 @@ function renderLevel(){
   });
 }
 
+/* ====== Interaksi ====== */
 function placeLetter(btn, ch){
   const target = slots.find(s => s.textContent==='');
   if(!target) return;
@@ -219,11 +210,16 @@ btnSubmit.onclick = ()=>{
   const L = levels[idx];
   const formed = slots.map(s => s.textContent).join('');
   const answer = L.a.toUpperCase().replace(/\s+/g,'');
+
+  // Jika belum penuh ATAU salah → langsung salah, tampilkan jawaban & lanjut
   if(formed.length < answer.length || formed !== answer){
     showCorrectThenNext(answer);
     return;
   }
-  score += (idx+1) * 20;
+
+  // Benar → hitung skor kelipatan 20 berdasarkan jumlah benar
+  correct += 1;
+  score = correct * 20;                // 20 / 40 / 60 / 80 / 100
   elScore.textContent = `Skor: ${score}`;
   flash(elAnswer,'rgba(54,211,153,.35)');
   setTimeout(nextLevel, 450);
@@ -235,11 +231,11 @@ function showCorrectThenNext(answer){
   setTimeout(nextLevel, 900);
 }
 
+/* ====== Helpers ====== */
 function flash(el, color){
   el.style.boxShadow = `0 0 0 9999px ${color} inset`;
   setTimeout(()=> el.style.boxShadow = '', 220);
 }
-
 function nextLevel(){
   idx++;
   if(idx >= levels.length){
@@ -249,13 +245,13 @@ function nextLevel(){
     renderLevel();
   }
 }
-
 btnReplay.onclick = ()=>{
-  score = 0; idx = 0;
+  idx = 0; correct = 0; score = 0;
   elEnd.style.display = 'none';
   renderLevel();
 };
 
+/* Start */
 renderLevel();
 addEventListener('resize', ()=> {
   const a = levels[idx].a.toUpperCase().replace(/\s+/g,'');
