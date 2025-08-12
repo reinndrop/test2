@@ -21,6 +21,7 @@
     background-size:cover; background-position:center;
   }
 
+  /* Panel: top 31%, bottom 4% */
   .panel{
     position:absolute; left:6%; right:6%;
     top:31%; bottom:4%;
@@ -110,6 +111,7 @@
   </div>
 
 <script>
+/* ====== 20 Soal dari kamu ====== */
 const QUESTION_POOL = [
   { q: "Siapa pemain yang dijuluki “El Loco”?", a: "GONZALES" },
   { q: "Sebutkan tahun debut Indonesia di Piala Asia?", a: "1996" },
@@ -133,9 +135,11 @@ const QUESTION_POOL = [
   { q: "Maksimal panjang lapangan internasional (meter)?", a: "105" }
 ];
 
+/* Ambil 5 random unik */
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
 const levels = shuffle([...QUESTION_POOL]).slice(0,5);
 
+/* Elemen */
 const elStage = document.getElementById('stage');
 const elPanel = document.getElementById('panel');
 const elQuestion= document.getElementById('question');
@@ -149,29 +153,37 @@ const btnUndo   = document.getElementById('btnUndo');
 const btnSubmit = document.getElementById('btnSubmit');
 const btnReplay = document.getElementById('btnReplay');
 
+/* Aktifkan background jika ada */
 (function(){
   const img = new Image();
   img.onload = () => elStage.classList.add('has-bg');
   img.src = "assets/bg.png";
 })();
 
+/* State */
 let idx = 0;
 let score = 0;
 let slots = [];
 
+/* Utils */
 const rand = (min, max) => Math.floor(Math.random()*(max-min+1))+min;
+
+/* FIX: target dihitung sekali, bukan ikut berubah dengan length! */
 function makePool(answer){
-  const letters = answer.replace(/\s+/g,'').toUpperCase().split('');
+  const core = answer.replace(/\s+/g,'').toUpperCase();
+  const letters = core.split('');
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
   const numbers = "0123456789".split('');
-  const containsNumber = /\d/.test(answer);
+  const containsNumber = /\d/.test(core);
   const sourceChars = containsNumber ? alphabet.concat(numbers) : alphabet;
 
-  while(letters.length < Math.max(12, letters.length + 4)){
-    letters.push(sourceChars[rand(0, sourceChars.length-1)]);
+  const desired = Math.max(12, core.length + 4);  // ← target tetap
+  while (letters.length < desired){
+    letters.push(sourceChars[rand(0, sourceChars.length - 1)]);
   }
-  return shuffle(letters).slice(0, Math.max(12, letters.length + 4));
+  return shuffle(letters).slice(0, desired);
 }
+
 function setSlotSizeForOneRow(n){
   const pad = 16*2;
   const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--gap'));
@@ -180,6 +192,7 @@ function setSlotSizeForOneRow(n){
   document.documentElement.style.setProperty('--slot', size + 'px');
 }
 
+/* Render */
 function renderLevel(){
   const L = levels[idx];
   elProgress.textContent = `Pertanyaan ${idx+1}/${levels.length}`;
@@ -190,7 +203,7 @@ function renderLevel(){
   slots = [];
   const answerClean = L.a.toUpperCase().replace(/\s+/g,'');
   setSlotSizeForOneRow(answerClean.length);
-  for(let i=0;i<answerClean.length;i++){
+  for (let i=0;i<answerClean.length;i++){
     const slot = document.createElement('div');
     slot.className = 'slot';
     slot.textContent = '';
@@ -209,6 +222,7 @@ function renderLevel(){
   });
 }
 
+/* Interaksi */
 function placeLetter(btn, ch){
   const target = slots.find(s => s.textContent==='');
   if(!target) return;
@@ -232,11 +246,13 @@ btnSubmit.onclick = ()=>{
   const formed = slots.map(s => s.textContent).join('');
   const answer = L.a.toUpperCase().replace(/\s+/g,'');
 
+  // Belum penuh / salah → salah, tampilkan jawaban & lanjut
   if(formed.length < answer.length || formed !== answer){
     showCorrectThenNext(answer);
     return;
   }
 
+  // Benar → +20 poin
   score += 20;
   elScore.textContent = `Skor: ${score}`;
   flash(elAnswer,'rgba(54,211,153,.35)');
@@ -249,6 +265,7 @@ function showCorrectThenNext(answer){
   setTimeout(nextLevel, 900);
 }
 
+/* Helpers */
 function flash(el, color){
   el.style.boxShadow = `0 0 0 9999px ${color} inset`;
   setTimeout(()=> el.style.boxShadow = '', 220);
@@ -270,6 +287,7 @@ btnReplay.onclick = ()=>{
   renderLevel();
 };
 
+/* Start */
 renderLevel();
 addEventListener('resize', ()=> {
   const a = levels[idx].a.toUpperCase().replace(/\s+/g,'');
