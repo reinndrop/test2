@@ -6,142 +6,88 @@
 <title>VG Art — Tebak Kata</title>
 <style>
   :root{
-    --w:1080; --h:1920; /* basis desain portrait */
-    --glass: rgba(0,0,0,.35);
-    --ink: #101828;
-    --white: #fff;
-    --accent: #00D1FF;
-    --good: #36D399;
-    --warn: #FDB022;
-    --danger:#F04438;
+    --slot: 64px;           /* akan diubah via JS agar 1 baris */
+    --gap: 10px;            /* jarak antar slot */
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:#0b1220;color:var(--white);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-  /* panggung dengan aspect ratio 1080x1920 */
+  html,body{height:100%;margin:0;background:#0b1220;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial}
   .stage{
-    position:relative;
-    width:min(100vw, 400px);      /* enak di HP & desktop */
-    aspect-ratio: 1080 / 1920;
-    margin:0 auto;
-    background:
-      radial-gradient(1200px 900px at 50% 20%, rgba(0,0,0,.12), rgba(0,0,0,.35)),
-      #0b1220 center/cover no-repeat;
-    border-radius:24px;
-    overflow:hidden;
-    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    position:relative; width:min(100vw, 600px); aspect-ratio:1080/1920; margin:0 auto;
+    background: radial-gradient(1200px 900px at 50% 20%, rgba(0,0,0,.12), rgba(0,0,0,.35)), #0b1220 center/cover no-repeat;
+    border-radius:24px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5);
   }
-  /* pasang background event (ubah url di CSS ini sesuai file kamu) */
   .stage.has-bg{
     background-image:
       radial-gradient(1200px 900px at 50% 20%, rgba(0,0,0,.12), rgba(0,0,0,.35)),
       url("assets/bg.png");
-    background-size:cover;
-    background-position:center;
+    background-size:cover; background-position:center;
   }
 
-  /* area konten utama (di “kotak aman” tanpa nabrak dekor) */
+  /* PANEL diperkecil & diturunkan: aman dari logo & dekor bawah */
   .panel{
-    position:absolute; left:4%; right:4%;
-    top:27%; bottom:7%;
+    position:absolute; left:6%; right:6%; top:34%; bottom:14%;
     display:flex; flex-direction:column; gap:14px;
     background:linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.08));
     border:1px solid rgba(255,255,255,.16);
-    border-radius:20px;
-    backdrop-filter: blur(6px);
-    padding:16px;
+    border-radius:20px; backdrop-filter: blur(6px); padding:16px;
   }
 
-  .topbar{
-    display:flex; justify-content:space-between; align-items:center;
-    font-weight:800; letter-spacing:.4px;
-    text-shadow:0 2px 8px rgba(0,0,0,.6);
-  }
-  .badge{background:rgba(255,255,255,.12); padding:8px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.22)}
-  .score{background:rgba(0,209,255,.25); border:1px solid rgba(0,209,255,.55)}
+  .topbar{display:flex;justify-content:space-between;align-items:center;font-weight:800;letter-spacing:.3px}
+  .badge{background:rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.22)}
+  .score{background:rgba(0,209,255,.25);border:1px solid rgba(0,209,255,.55)}
 
-  .question{
-    margin-top:6px;
-    font-weight:700; line-height:1.25;
-    font-size: clamp(16px, 2.6vw, 28px);
-    text-shadow:0 2px 6px rgba(0,0,0,.45);
-  }
+  .question{margin-top:4px;font-weight:800;line-height:1.25;font-size:clamp(16px,2.4vw,26px);text-shadow:0 2px 6px rgba(0,0,0,.45)}
 
-  .answer{
-    display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
-    padding:6px 0 2px;
-  }
+  /* JAWABAN satu baris */
+  .answer{display:flex;justify-content:center;gap:var(--gap);padding:8px 0 4px;flex-wrap:nowrap;overflow:hidden}
   .slot{
-    width:64px; height:64px; display:grid; place-items:center;
-    border-radius:14px;
-    border:2px solid rgba(255,255,255,.75);
-    background:rgba(255,255,255,.08);
-    box-shadow: inset 0 2px 8px rgba(0,0,0,.35);
-    font-weight:900; font-size:28px;
+    width:var(--slot); height:var(--slot); display:grid; place-items:center;
+    border-radius:14px; border:2px solid rgba(255,255,255,.75);
+    background:rgba(255,255,255,.08); box-shadow:inset 0 2px 8px rgba(0,0,0,.35);
+    font-weight:900; font-size:calc(var(--slot) * .42);
   }
 
-  .letters{
-    margin-top:6px;
-    display:grid; grid-template-columns: repeat(6, 1fr);
-    gap:10px;
-  }
+  .letters{margin-top:8px; display:grid; grid-template-columns:repeat(6,1fr); gap:10px}
   .btn-letter{
-    height:64px; border-radius:16px; border:1px solid rgba(255,255,255,.2);
+    height:56px;border-radius:14px;border:1px solid rgba(255,255,255,.2);
     background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
     box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
-    font-weight:900; font-size:24px; color:#fff;
-    display:grid; place-items:center; user-select:none; cursor:pointer;
-    transition: transform .05s ease;
+    font-weight:900;font-size:22px;color:#fff;display:grid;place-items:center;user-select:none;cursor:pointer;transition:transform .05s ease;
   }
-  .btn-letter:active{ transform:translateY(1px) scale(.99); }
-  .btn-letter.disabled{ opacity:.35; pointer-events:none; }
+  .btn-letter:active{transform:translateY(1px) scale(.99)}
+  .btn-letter.disabled{opacity:.35;pointer-events:none}
 
-  .actions{ display:flex; gap:12px; margin-top:auto; }
+  .actions{display:flex;gap:12px;margin-top:auto}
   .btn{
-    flex:1; height:56px; border-radius:16px; border:1px solid rgba(255,255,255,.22);
+    flex:1;height:56px;border-radius:16px;border:1px solid rgba(255,255,255,.22);
     background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
-    color:#fff; font-weight:800; letter-spacing:.3px; cursor:pointer;
-    box-shadow:0 10px 26px rgba(0,0,0,.35);
+    color:#fff;font-weight:800;letter-spacing:.3px;cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.35)
   }
-  .btn.primary{ background:linear-gradient(180deg, #00d1ff, #0098ff); border-color:rgba(255,255,255,.35); }
-  .btn.warn{ background:linear-gradient(180deg, #fdb022, #ff8f00); }
-  .btn.danger{ background:linear-gradient(180deg, #f04438, #c81e14); }
+  .btn.danger{background:linear-gradient(180deg, #f04438, #c81e14)}
+  .btn.primary{background:linear-gradient(180deg, #00d1ff, #0098ff);border-color:rgba(255,255,255,.35)}
 
-  /* END SCREEN */
-  .endscreen{
-    position:absolute; inset:0; display:none; place-items:center; text-align:center;
-    background:rgba(0,0,0,.4); backdrop-filter: blur(4px);
-    padding:24px;
-  }
+  .endscreen{position:absolute;inset:0;display:none;place-items:center;text-align:center;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);padding:24px}
   .card{
-    width:min(92%, 520px);
-    background:linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.35));
-    border:1px solid rgba(255,255,255,.2);
-    border-radius:22px; padding:24px; color:#fff;
-    box-shadow:0 20px 50px rgba(0,0,0,.55);
+    width:min(92%,520px);background:linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.35));
+    border:1px solid rgba(255,255,255,.2);border-radius:22px;padding:24px;color:#fff;box-shadow:0 20px 50px rgba(0,0,0,.55)
   }
-  .card h2{margin:0 0 10px; font-size:28px}
-  .card p{margin:8px 0; opacity:.95}
-  .cta{
-    margin-top:14px; font-weight:800;
-    background:linear-gradient(180deg, #22c55e, #16a34a);
-    border:1px solid rgba(255,255,255,.3); color:#fff;
-    padding:12px 16px; border-radius:14px; display:inline-block;
-  }
+  .card h2{margin:0 0 10px;font-size:28px}
+  .card p{margin:8px 0;opacity:.95}
+  .cta{margin-top:14px;font-weight:800;background:linear-gradient(180deg,#22c55e,#16a34a);border:1px solid rgba(255,255,255,.3);color:#fff;padding:12px 16px;border-radius:14px;display:inline-block}
 
-  /* kecilkan di layar sempit */
   @media (max-width:420px){
-    .slot{width:56px;height:56px;font-size:24px}
-    .btn-letter{height:56px;font-size:22px}
+    :root{ --gap: 8px }
+    .letters{gap:8px}
     .btn{height:52px}
   }
 </style>
 </head>
 <body>
-  <div id="stage" class="stage"><!-- class "has-bg" akan ditambah via JS jika bg ditemukan -->
+  <div id="stage" class="stage">
     <div class="panel" id="panel">
       <div class="topbar">
         <div class="badge" id="progress">Pertanyaan 1/5</div>
-        <div class="badge score" id="score">Skor: 0</div>
+        <div class="badge score" id="score">Skor: 0/5</div>
       </div>
 
       <div class="question" id="question">Pertanyaan akan muncul di sini</div>
@@ -152,7 +98,6 @@
 
       <div class="actions">
         <button class="btn danger" id="btnUndo">Hapus</button>
-        <button class="btn warn" id="btnHint">Hint (-20)</button>
         <button class="btn primary" id="btnSubmit">Submit</button>
       </div>
     </div>
@@ -160,9 +105,8 @@
     <div class="endscreen" id="end">
       <div class="card">
         <h2>Skor Akhir</h2>
-        <div style="font-size:40px;font-weight:900;letter-spacing:1px" id="finalScore">0</div>
+        <div style="font-size:40px;font-weight:900;letter-spacing:1px" id="finalScore">0/5</div>
         <p>Screenshot layar ini lalu post di <b>Instagram Story</b> dan tag <b>@vivagoal</b> 🔥</p>
-        <p style="opacity:.8">Terima kasih sudah ikut bermain!</p>
         <button class="cta" id="btnReplay">Main Lagi</button>
       </div>
     </div>
@@ -177,12 +121,10 @@ const levels = [
   { q: "Jumlah pemain sepakbola satu tim di lapangan", a: "SEBELAS" },
   { q: "Tendangan penalti dalam bahasa Inggris", a: "PENALTY" }
 ];
-// Konfigurasi skor
-const SCORE_CORRECT = 100;
-const SCORE_HINT = 20;
 
-/* ========= INISIALISASI UI ========= */
+/* ========= ELEM ========= */
 const elStage = document.getElementById('stage');
+const elPanel = document.getElementById('panel');
 const elQuestion = document.getElementById('question');
 const elAnswer = document.getElementById('answer');
 const elLetters = document.getElementById('letters');
@@ -191,11 +133,10 @@ const elProgress = document.getElementById('progress');
 const elEnd = document.getElementById('end');
 const elFinal = document.getElementById('finalScore');
 const btnUndo = document.getElementById('btnUndo');
-const btnHint = document.getElementById('btnHint');
 const btnSubmit = document.getElementById('btnSubmit');
 const btnReplay = document.getElementById('btnReplay');
 
-// Tambahkan kelas has-bg jika gambar ada (biarkan error diam-diam jika tidak ada)
+// Pasang background jika ada
 (function testBG(){
   const img = new Image();
   img.onload = () => elStage.classList.add('has-bg');
@@ -204,47 +145,54 @@ const btnReplay = document.getElementById('btnReplay');
 
 /* ========= STATE ========= */
 let idx = 0;
-let score = 0;
-let currentAnswer = [];
+let scoreCorrect = 0;
 let slots = [];
-let pool = [];
 
 /* ========= UTIL ========= */
 const rand = (min, max) => Math.floor(Math.random()*(max-min+1))+min;
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=rand(0,i); [arr[i],arr[j]]=[arr[j],arr[i]]} return arr; }
 function makePool(answer){
   const letters = answer.replace(/\s+/g,'').toUpperCase().split('');
-  // tambah distraktor
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
   while(letters.length < Math.max(12, answer.length + 4)){
     letters.push(alphabet[rand(0, alphabet.length-1)]);
   }
   return shuffle(letters).slice(0, Math.max(12, answer.length + 4));
 }
+function setSlotSizeForOneRow(n){
+  // Hitung lebar area jawaban agar muat 1 baris
+  const pad = 16*2; // padding panel kira-kira (CSS)
+  const avail = elPanel.clientWidth - pad - (n-1)*parseInt(getComputedStyle(document.documentElement).getPropertyValue('--gap'));
+  const size = Math.max(42, Math.min(72, Math.floor(avail / n)));
+  document.documentElement.style.setProperty('--slot', size + 'px');
+}
 
 /* ========= RENDER ========= */
 function renderLevel(){
   const L = levels[idx];
   elProgress.textContent = `Pertanyaan ${idx+1}/${levels.length}`;
+  elScore.textContent = `Skor: ${scoreCorrect}/${levels.length}`;
   elQuestion.textContent = L.q;
-  // slots
+
+  // slots (1 baris)
   elAnswer.innerHTML = '';
   slots = [];
-  currentAnswer = [];
   const clean = L.a.toUpperCase();
-  for(const ch of clean){
+  const lettersOnly = clean.replace(/\s+/g,'');
+  setSlotSizeForOneRow(lettersOnly.length);
+
+  for(const ch of lettersOnly){
     const slot = document.createElement('div');
     slot.className = 'slot';
-    slot.dataset.lock = ch === ' ' ? '1' : '0';
-    slot.textContent = ch === ' ' ? ' ' : '';
+    slot.textContent = '';
     elAnswer.appendChild(slot);
     slots.push(slot);
-    if(ch !== ' ') currentAnswer.push('');
   }
-  // letters
-  pool = makePool(clean);
+
+  // huruf pool
+  const pool = makePool(clean);
   elLetters.innerHTML = '';
-  pool.forEach((ch,i)=>{
+  pool.forEach((ch)=>{
     const b = document.createElement('div');
     b.className = 'btn-letter';
     b.textContent = ch;
@@ -254,62 +202,39 @@ function renderLevel(){
 }
 
 function placeLetter(btn, ch){
-  // cari slot kosong pertama
-  const target = slots.find(s => s.dataset.lock==='0' && s.textContent==='');
+  const target = slots.find(s => s.textContent==='');
   if(!target) return;
   target.textContent = ch;
-  btn.classList.add('disabled');
-  btn.dataset.used = "1";
+  btn.classList.add('disabled'); btn.dataset.used = "1";
 }
 
 btnUndo.onclick = ()=>{
-  // hapus huruf terakhir yg terisi
   for(let i=slots.length-1; i>=0; i--){
     const s = slots[i];
-    if(s.dataset.lock==='0' && s.textContent!==''){
-      const ch = s.textContent;
-      s.textContent = '';
-      // pulihkan satu tombol huruf yang dipakai
+    if(s.textContent!==''){
+      const ch = s.textContent; s.textContent = '';
       const btn = [...elLetters.children].find(b => b.textContent===ch && b.dataset.used==="1");
       if(btn){ btn.classList.remove('disabled'); btn.dataset.used=""; break; }
     }
   }
 };
 
-btnHint.onclick = ()=>{
-  const L = levels[idx].a.toUpperCase();
-  // cari slot kosong, isi dengan huruf yang benar di posisi itu
-  for(let i=0;i<slots.length;i++){
-    const s = slots[i];
-    if(s.dataset.lock==='0' && s.textContent===''){
-      const correctCh = L.replace(/\s+/g,'')[i]; // abaikan spasi
-      // cari tombol huruf yang cocok
-      const btn = [...elLetters.children].find(b => b.textContent===correctCh && !b.classList.contains('disabled'));
-      if(btn){
-        placeLetter(btn, correctCh);
-        score = Math.max(0, score - SCORE_HINT);
-        elScore.textContent = `Skor: ${score}`;
-      }
-      break;
-    }
-  }
-};
-
 btnSubmit.onclick = ()=>{
   const L = levels[idx];
-  const formed = slots.map(s => s.textContent || (s.dataset.lock==='1'?' ':'')).join('').replace(/\s+/g,'');
+  const formed = slots.map(s => s.textContent).join('');
   const answer = L.a.toUpperCase().replace(/\s+/g,'');
-  if(formed.length < answer.length){
-    flash(elAnswer, 'rgba(253,176,34,.35)'); // belum lengkap
-    return;
-  }
+  if(formed.length < answer.length){ flash(elAnswer,'rgba(253,176,34,.35)'); return; }
+
   if(formed === answer){
-    score += SCORE_CORRECT;
-    elScore.textContent = `Skor: ${score}`;
-    flash(elAnswer, 'rgba(54,211,153,.35)');
+    scoreCorrect++;
+    elScore.textContent = `Skor: ${scoreCorrect}/${levels.length}`;
+    flash(elAnswer,'rgba(54,211,153,.35)');
     setTimeout(nextLevel, 450);
   }else{
-    flash(elAnswer, 'rgba(240,68,56,.35)');
+    // tampilkan jawaban benar lalu lanjut
+    slots.forEach((s,i)=> s.textContent = answer[i] || '');
+    flash(elAnswer,'rgba(240,68,56,.35)');
+    setTimeout(nextLevel, 900);
   }
 };
 
@@ -321,8 +246,7 @@ function flash(el, color){
 function nextLevel(){
   idx++;
   if(idx >= levels.length){
-    // end
-    elFinal.textContent = score;
+    elFinal.textContent = `${scoreCorrect}/${levels.length}`;
     elEnd.style.display = 'grid';
   }else{
     renderLevel();
@@ -330,14 +254,18 @@ function nextLevel(){
 }
 
 btnReplay.onclick = ()=>{
-  score = 0; idx = 0;
-  elScore.textContent = `Skor: ${score}`;
+  scoreCorrect = 0; idx = 0;
   elEnd.style.display = 'none';
   renderLevel();
 };
 
 /* ========= START ========= */
 renderLevel();
+addEventListener('resize', ()=> {
+  // jaga slot tetap satu baris saat resize
+  const a = levels[idx].a.toUpperCase().replace(/\s+/g,'');
+  setSlotSizeForOneRow(a.length);
+});
 </script>
 </body>
 </html>
