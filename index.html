@@ -21,7 +21,7 @@
     background-size:cover; background-position:center;
   }
 
-  /* POSISI PANEL: biarin seperti yang sudah pas di kamu (tidak diubah) */
+  /* POSISI PANEL: balik ke 32% seperti yang kamu minta */
   .panel{
     position:absolute; left:6%; right:6%;
     top:32%; bottom:12%;
@@ -126,7 +126,7 @@ const btnUndo   = document.getElementById('btnUndo');
 const btnSubmit = document.getElementById('btnSubmit');
 const btnReplay = document.getElementById('btnReplay');
 
-/* Background aktif kalau ada assets/bg.png */
+/* Aktifkan background jika assets/bg.png tersedia */
 (function(){
   const img = new Image();
   img.onload = () => elStage.classList.add('has-bg');
@@ -135,8 +135,7 @@ const btnReplay = document.getElementById('btnReplay');
 
 /* ====== State & Utils ====== */
 let idx = 0;           // index soal
-let correct = 0;       // jumlah benar (0..5)
-let score = 0;         // skor (0,20,40,60,80,100)
+let score = 0;         // 0..100 (kelipatan 20)
 let slots = [];
 
 const rand = (min, max) => Math.floor(Math.random()*(max-min+1))+min;
@@ -211,15 +210,14 @@ btnSubmit.onclick = ()=>{
   const formed = slots.map(s => s.textContent).join('');
   const answer = L.a.toUpperCase().replace(/\s+/g,'');
 
-  // Jika belum penuh ATAU salah → langsung salah, tampilkan jawaban & lanjut
+  // Belum penuh ATAU salah → salah, tampilkan jawaban & lanjut
   if(formed.length < answer.length || formed !== answer){
     showCorrectThenNext(answer);
     return;
   }
 
-  // Benar → hitung skor kelipatan 20 berdasarkan jumlah benar
-  correct += 1;
-  score = correct * 20;                // 20 / 40 / 60 / 80 / 100
+  // Benar → tambah 20 poin
+  score += 20;
   elScore.textContent = `Skor: ${score}`;
   flash(elAnswer,'rgba(54,211,153,.35)');
   setTimeout(nextLevel, 450);
@@ -246,7 +244,7 @@ function nextLevel(){
   }
 }
 btnReplay.onclick = ()=>{
-  idx = 0; correct = 0; score = 0;
+  idx = 0; score = 0;
   elEnd.style.display = 'none';
   renderLevel();
 };
